@@ -16,7 +16,7 @@ export const EditorPane: React.FC<EditorPaneProps> = ({ content, previewContent,
   const editorRef = useRef<any>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const highlightDecorations = useRef<string[]>([]);
-  const [isPreviewScrollable, setIsPreviewScrollable] = React.useState(false);
+  const [_, setIsPreviewScrollable] = React.useState(false);
 
   // Check if preview is scrollable
   React.useEffect(() => {

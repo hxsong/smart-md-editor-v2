@@ -5,7 +5,6 @@ import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { EditorPane } from './components/EditorPane';
 import { MarkdownPreview } from './components/MarkdownPreview';
-import { FileText } from 'lucide-react';
 import { validateContent } from './utils/validation';
 
 function App() {
