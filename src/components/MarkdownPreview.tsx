@@ -50,26 +50,28 @@ const defaultFence = md.renderer.rules.fence || function(tokens, idx, options, _
 md.renderer.rules.fence = (tokens, idx, options, _env, self) => {
   const token = tokens[idx];
   const info = token.info.trim();
+  const line = token.map ? token.map[0] : '';
   
   if (info === 'mermaid') {
-    return `<div class="mermaid">${token.content}</div>`;
+    return `<div class="mermaid" data-line="${line}">${token.content}</div>`;
   }
   
   if (info === 'plantuml') {
     try {
       const encoded = plantumlEncoder.encode(token.content);
       const url = `http://www.plantuml.com/plantuml/svg/${encoded}`;
-      return `<div class="flex justify-center my-4"><img src="${url}" alt="PlantUML Diagram" /></div>`;
+      return `<div class="flex justify-center my-4" data-line="${line}"><img src="${url}" alt="PlantUML Diagram" /></div>`;
     } catch (e) {
-      return `<div class="text-red-500">PlantUML Error: ${e}</div>`;
+      return `<div class="text-red-500" data-line="${line}">PlantUML Error: ${e}</div>`;
     }
   }
 
   if (info === 'echarts' || info === 'json echarts') {
-    return `<div class="echarts-chart w-full h-96 my-4"><script type="application/json">${token.content}</script></div>`;
+    return `<div class="echarts-chart w-full h-96 my-4" data-line="${line}"><script type="application/json">${token.content}</script></div>`;
   }
   
-  return defaultFence(tokens, idx, options, _env, self);
+  const rendered = defaultFence(tokens, idx, options, _env, self);
+  return `<div data-line="${line}">${rendered}</div>`;
 };
 
 // Initialize mermaid
@@ -111,12 +113,13 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, class
           try {
             const id = `mermaid-${Date.now()}-${index}`;
             const text = node.textContent || '';
+            const line = node.getAttribute('data-line');
             const { svg } = await mermaid.render(id, text);
-            node.outerHTML = svg;
+            node.outerHTML = `<div class="mermaid-container" data-line="${line}">${svg}</div>`;
           } catch (error) {
             console.error('Mermaid render error:', error);
             // Keep the original content but wrap in error style or leave as is
-             node.innerHTML = `<div class="text-red-500 border border-red-300 bg-red-50 p-2 rounded">Mermaid Error: ${(error as any).message}</div><pre>${node.textContent}</pre>`;
+             node.innerHTML = `<div class="text-red-500 border border-red-300 bg-red-50 p-2 rounded">Mermaid 渲染错误: ${(error as any).message}</div><pre>${node.textContent}</pre>`;
           }
         }));
       }
@@ -185,7 +188,7 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, class
   return (
     <div
       ref={containerRef}
-      className={`prose prose-slate dark:prose-invert max-w-none p-8 overflow-y-auto h-full scroll-smooth ${className} 
+      className={`prose prose-slate dark:prose-invert max-w-none p-8 overflow-y-auto h-full scroll-smooth cursor-pointer ${className} 
         prose-headings:font-semibold prose-h1:text-3xl prose-h2:text-2xl 
         prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:no-underline hover:prose-a:underline
         prose-img:rounded-lg prose-img:shadow-md

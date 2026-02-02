@@ -1,3 +1,5 @@
+declare module 'html2pdf.js';
+
 declare module 'tablesort' {
   export default function tablesort(el: HTMLElement, options?: any): void;
 }

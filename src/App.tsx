@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { debounce } from 'lodash';
 import { useFileSystem } from './hooks/useFileSystem';
 import { Sidebar } from './components/layout/Sidebar';
@@ -28,9 +28,40 @@ function App() {
     []
   );
 
-  const handleEditorChange = (value: string) => {
+  const handleEditorChange = useCallback((value: string) => {
     setContent(value);
     debouncedUpdatePreview(value);
+  }, [debouncedUpdatePreview]);
+
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPDF = async () => {
+    if (!previewRef.current) {
+      showToast('无法获取预览内容', 'error');
+      return;
+    }
+
+    try {
+      showToast('正在生成 PDF...', 'success');
+      
+      // Dynamically import html2pdf.js to avoid SSR issues and reduce initial bundle size
+      const html2pdf = (await import('html2pdf.js')).default;
+      
+      const element = previewRef.current;
+      const opt = {
+        margin: [10, 10, 10, 10] as [number, number, number, number],
+        filename: `${currentFile?.name || 'document'}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+      showToast('PDF 导出成功！', 'success');
+    } catch (err: any) {
+      console.error('Export PDF error:', err);
+      showToast('导出 PDF 失败: ' + err.message, 'error');
+    }
   };
 
   useEffect(() => {
@@ -44,12 +75,25 @@ function App() {
         })
         .catch(err => {
           console.error('Error reading file:', err);
-          showToast('Failed to read file: ' + err.message, 'error');
+          showToast('读取文件失败: ' + err.message, 'error');
         });
     } else {
       setContent('');
       setPreviewContent('');
     }
+  }, [currentFile, readFile]);
+
+  const handleExitEdit = useCallback(async () => {
+    if (currentFile) {
+      try {
+        const text = await readFile(currentFile);
+        setContent(text);
+        setPreviewContent(text);
+      } catch (err) {
+        console.error('Error reverting changes:', err);
+      }
+    }
+    setIsEditing(false);
   }, [currentFile, readFile]);
 
   const handleSave = async () => {
@@ -64,10 +108,10 @@ function App() {
 
     try {
       await saveFile(currentFile, content);
-      showToast('File saved successfully!', 'success');
+      showToast('文件保存成功！', 'success');
     } catch (err) {
       console.error(err);
-      showToast('Failed to save file.', 'error');
+      showToast('保存文件失败。', 'error');
     }
   };
 
@@ -98,6 +142,7 @@ function App() {
                 currentFile={currentFile}
                 onEdit={() => setIsEditing(true)}
                 onBack={() => setCurrentFile(null)}
+                onExportPDF={handleExportPDF}
               />
             )}
 
@@ -109,12 +154,15 @@ function App() {
                     previewContent={previewContent}
                     onChange={handleEditorChange}
                     onSave={handleSave}
-                    onExitEdit={() => setIsEditing(false)}
+                    onExitEdit={handleExitEdit}
                     fileName={currentFile.name}
                   />
                 </div>
               ) : (
-                <MarkdownPreview content={previewContent || content} />
+                <MarkdownPreview 
+                  content={previewContent || content} 
+                  previewRef={previewRef}
+                />
               )}
             </div>
           </>

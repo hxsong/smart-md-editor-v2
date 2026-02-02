@@ -34,7 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={openDirectory}
             className="p-1.5 hover:bg-secondary-200 dark:hover:bg-secondary-800 rounded text-secondary-600 dark:text-secondary-400 transition-colors"
-            title="Open Folder"
+            title="打开文件夹"
           >
             <FolderOpen size={20} />
           </button>
