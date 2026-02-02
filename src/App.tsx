@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { debounce } from 'lodash';
 import { useFileSystem } from './hooks/useFileSystem';
-import { FileExplorer } from './components/FileExplorer';
+import { Sidebar } from './components/layout/Sidebar';
+import { Header } from './components/layout/Header';
 import { EditorPane } from './components/EditorPane';
 import { MarkdownPreview } from './components/MarkdownPreview';
-import { FolderOpen, Edit3, FileText } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { validateContent } from './utils/validation';
 
 function App() {
@@ -77,63 +78,31 @@ function App() {
   };
 
   return (
-    <div className="h-screen w-screen flex bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 overflow-hidden">
-      {/* Sidebar */}
-      <div className={`border-r border-slate-200 dark:border-slate-700 flex flex-col bg-slate-50 dark:bg-slate-950 transition-all duration-300 ease-in-out ${isEditing ? 'w-0 border-none overflow-hidden' : 'w-64'}`}>
-        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-          <span className="font-bold text-lg">MD Editor</span>
-          <button
-            onClick={openDirectory}
-            className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded text-slate-600 dark:text-slate-400"
-            title="Open Folder"
-          >
-            <FolderOpen size={20} />
-          </button>
-        </div>
-        
-        <div className="flex-1 overflow-hidden">
-          {rootHandle ? (
-            <FileExplorer
-              fileList={fileList}
-              onFileClick={(node) => {
-                setCurrentFile(node);
-                setIsEditing(false); // Default to read mode
-              }}
-              currentFileId={currentFile?.id}
-            />
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 p-6 text-center">
-              <FolderOpen size={48} className="mb-4 opacity-50" />
-              <p className="text-sm">Click the folder icon to open a directory</p>
-            </div>
-          )}
-        </div>
-      </div>
+    <div className="h-screen w-screen flex bg-secondary-50 dark:bg-secondary-900 text-secondary-800 dark:text-secondary-200 overflow-hidden font-sans">
+      <Sidebar
+        isEditing={isEditing}
+        openDirectory={openDirectory}
+        rootHandle={rootHandle}
+        fileList={fileList}
+        currentFile={currentFile}
+        onFileSelect={(node) => {
+          setCurrentFile(node);
+          setIsEditing(false);
+        }}
+      />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+      <div className={`flex-1 flex flex-col h-full overflow-hidden relative bg-white dark:bg-secondary-900 border-b-0 ${!currentFile ? 'hidden md:flex' : 'flex'}`}>
         {currentFile ? (
           <>
-            {/* Header/Toolbar */}
             {!isEditing && (
-               <div className="h-14 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 bg-white dark:bg-slate-900">
-                 <div className="flex items-center gap-2">
-                   <FileText size={20} className="text-blue-500" />
-                   <h1 className="font-semibold text-lg truncate">{currentFile.name}</h1>
-                 </div>
-                 
-                 <button
-                   onClick={() => setIsEditing(true)}
-                   className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
-                 >
-                   <Edit3 size={16} />
-                   Edit
-                 </button>
-               </div>
+              <Header
+                currentFile={currentFile}
+                onEdit={() => setIsEditing(true)}
+                onBack={() => setCurrentFile(null)}
+              />
             )}
 
-            {/* Content Area */}
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 overflow-hidden relative animate-fade-in">
               {isEditing ? (
                 <div className="h-full flex flex-col">
                   <EditorPane
@@ -151,17 +120,12 @@ function App() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-300 dark:text-slate-600">
-            <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-              <FileText size={48} />
-            </div>
-            <p className="text-xl font-medium">Select a file to view or edit</p>
+          <div className="flex-1 flex flex-col items-center justify-center text-secondary-300 dark:text-secondary-600 animate-fade-in">
           </div>
         )}
 
-        {/* Toast Notification */}
         {toast && (
-          <div className={`absolute bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium animate-in fade-in slide-in-from-bottom-4 ${
+          <div className={`absolute bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium animate-slide-up ${
             toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
           }`}>
             {toast.message}

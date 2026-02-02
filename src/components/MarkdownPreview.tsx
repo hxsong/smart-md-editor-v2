@@ -82,10 +82,13 @@ interface MarkdownPreviewProps {
   content: string;
   className?: string;
   onScroll?: (e: React.UIEvent<HTMLDivElement>) => void;
+  onMouseUp?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onKeyUp?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   previewRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, className, onScroll, previewRef }) => {
+export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, className, onScroll, onMouseUp, onKeyUp, onClick, previewRef }) => {
   const containerRef = previewRef || useRef<HTMLDivElement>(null);
   const [renderedContent, setRenderedContent] = React.useState('');
 
@@ -166,9 +169,14 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, class
          // Add responsive wrapper if not already wrapped
          if (!table.parentElement?.classList.contains('table-wrapper')) {
            const wrapper = document.createElement('div');
-           wrapper.className = 'table-wrapper overflow-x-auto my-4 border border-slate-200 dark:border-slate-700 rounded';
+           wrapper.className = 'table-wrapper overflow-x-auto my-6 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 shadow-sm';
            table.parentNode?.insertBefore(wrapper, table);
            wrapper.appendChild(table);
+           
+           // Ensure table headers and cells have consistent padding
+           table.querySelectorAll('th, td').forEach(cell => {
+             (cell as HTMLElement).style.padding = '0.75rem 1rem';
+           });
          }
       });
     }
@@ -177,8 +185,18 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, class
   return (
     <div
       ref={containerRef}
-      className={`markdown-body p-8 overflow-y-auto h-full ${className}`}
+      className={`prose prose-slate dark:prose-invert max-w-none p-8 overflow-y-auto h-full scroll-smooth ${className} 
+        prose-headings:font-semibold prose-h1:text-3xl prose-h2:text-2xl 
+        prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:no-underline hover:prose-a:underline
+        prose-img:rounded-lg prose-img:shadow-md
+        prose-pre:bg-secondary-900 prose-pre:border prose-pre:border-secondary-800
+        prose-code:text-primary-600 dark:prose-code:text-primary-400 prose-code:bg-secondary-100 dark:prose-code:bg-secondary-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none
+        prose-table:my-0 prose-table:border-collapse
+      `}
       onScroll={onScroll}
+      onMouseUp={onMouseUp}
+      onKeyUp={onKeyUp}
+      onClick={onClick}
       dangerouslySetInnerHTML={{ __html: renderedContent }}
     />
   );
