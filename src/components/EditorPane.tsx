@@ -5,6 +5,7 @@ import { Save, LogOut } from 'lucide-react';
 
 interface EditorPaneProps {
   content: string;
+  previewContent: string;
   onChange: (value: string) => void;
   onSave: () => void;
   onExitEdit: () => void;
