@@ -5,6 +5,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { EditorPane } from './components/EditorPane';
 import { MarkdownPreview } from './components/MarkdownPreview';
+import { Changelog } from './components/Changelog';
 import { validateContent } from './utils/validation';
 
 function App() {
@@ -167,7 +168,8 @@ function App() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-secondary-300 dark:text-secondary-600 animate-fade-in">
+          <div className="flex-1 flex flex-col items-center justify-center text-secondary-300 dark:text-secondary-600 animate-fade-in relative">
+            <Changelog />
           </div>
         )}
 

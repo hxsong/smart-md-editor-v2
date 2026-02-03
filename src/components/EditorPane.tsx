@@ -333,7 +333,7 @@ export const EditorPane: React.FC<EditorPaneProps> = ({ content, previewContent,
   return (
     <div className="flex h-full w-full flex-col bg-secondary-50 dark:bg-secondary-900">
       {/* Toolbar */}
-      <div className="h-14 flex items-center px-4 bg-white dark:bg-secondary-900 justify-between z-10">
+      <div className="h-14 flex items-center px-4 bg-white dark:bg-secondary-900 justify-between z-10 border-b border-secondary-100 dark:border-secondary-800">
         <div className="flex items-center gap-4 min-w-0 flex-1 mr-4">
             <div className="p-1.5 bg-primary-50 dark:bg-primary-900/20 rounded-lg text-primary-600 dark:text-primary-400">
                <FileText size={18} />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderOpen, Layout } from 'lucide-react';
+import { FolderOpen } from 'lucide-react';
 import { FileExplorer } from '../FileExplorer';
 import { FileNode } from '../../types';
 
@@ -28,8 +28,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }`}>
         <div className="h-14 flex items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <Layout size={18} className="text-primary-600 dark:text-primary-400" />
-            <span className="font-bold text-lg text-secondary-900 dark:text-secondary-100">MD Editor</span>
+            <img src="/smart-md-editor-v2/favicon.svg" alt="logo" className="w-5 h-5" />
+            <span className="font-bold text-base text-secondary-900 dark:text-secondary-100">Super-MDEditor</span>
           </div>
           <button
             onClick={openDirectory}
