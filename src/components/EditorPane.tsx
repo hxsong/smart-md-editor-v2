@@ -17,6 +17,7 @@ export const EditorPane: React.FC<EditorPaneProps> = ({ content, previewContent,
   const previewRef = useRef<HTMLDivElement>(null);
   const highlightDecorations = useRef<string[]>([]);
   const lastValueRef = useRef<string>(content);
+  const isProgrammaticScroll = useRef(false);
 
   const handleEditorDidMount: OnMount = useCallback((editor, monaco) => {
     editorRef.current = editor;
@@ -54,6 +55,8 @@ export const EditorPane: React.FC<EditorPaneProps> = ({ content, previewContent,
   };
 
   const handleEditorScroll = () => {
+    if (isProgrammaticScroll.current) return;
+
     if (editorRef.current && previewRef.current) {
       const editor = editorRef.current;
       const preview = previewRef.current;
@@ -160,8 +163,14 @@ export const EditorPane: React.FC<EditorPaneProps> = ({ content, previewContent,
      }
 
      if (bestMatch) {
+       isProgrammaticScroll.current = true;
        editor.revealRangeInCenter(bestMatch.range);
        editor.setSelection(bestMatch.range);
+       
+       // 重置标志位，延迟时间需覆盖编辑器滚动动画时间
+       setTimeout(() => {
+         isProgrammaticScroll.current = false;
+       }, 500);
        
        const newDecorations = [
          {

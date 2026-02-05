@@ -2,17 +2,25 @@
 
 A modern, dual-pane Markdown editor with intelligent features.
 
-## Features
+## Key Features
 
-- **Dual-Pane Interface**: Edit Markdown on the left, see live preview on the right.
-- **Preview-Driven Scrolling**:
-  - The scrolling is synchronized from the Preview pane to the Editor pane.
-  - While the preview is scrollable, manual scrolling in the editor is disabled to ensure a consistent reading experience.
-  - If the preview is too short to scroll, the editor regains manual scroll control.
-- **Bidirectional Text Positioning**:
-  - Select any text in the Preview pane to instantly locate and highlight the corresponding source code in the Editor.
-  - Highlights are displayed with a custom style (#fffbdc background) and fade out automatically after 1.5 seconds.
-- **Responsive Design**: Optimized for various screen sizes, including mobile support.
+- **Intelligent Dual-Pane Interface**: Edit Markdown on the left, see live preview on the right with synchronized scrolling.
+- **Advanced Markdown Support**: 
+  - **Math Formulas**: Deep integration with KaTeX for LaTeX-style math rendering.
+  - **Extended Syntax**: Support for footnotes, task lists, and automatic Table of Contents (TOC).
+- **Rich Diagram Integration**: 
+  - **Mermaid & PlantUML**: Render flowcharts, sequence diagrams, and more directly from code.
+  - **ECharts**: Embed interactive data visualizations using JSON configuration.
+- **Preview-to-Editor Navigation**: 
+  - Click or select text in the preview to instantly locate and highlight the source code in the editor.
+- **Interactive Tables**: Clickable headers for table sorting and responsive scroll views.
+- **File System Safety**: 
+  - **Automatic Backups**: Creates `.md.bak` files before saving.
+  - **Atomic Writes**: Ensures data integrity during file operations.
+  - **Legacy Fallback**: Automatic download fallback for browsers without File System Access API support.
+- **Optimized Editing**: 
+  - **Monaco Editor**: High-performance editing experience with shortcuts (Ctrl/Cmd+S).
+  - **IME Optimization**: Specifically tuned for smooth Chinese input method (IME) experience.
 
 ## Browser Compatibility
 
@@ -33,9 +41,6 @@ npm run dev
 ```
 
 ### Testing
-
-Unit tests are located in `src/components/__tests__`.
-E2E tests are located in `tests/e2e`.
 
 ```bash
 npm test
