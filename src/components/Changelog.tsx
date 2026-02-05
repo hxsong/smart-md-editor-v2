@@ -9,6 +9,17 @@ interface ChangelogItem {
 
 const changelogData: ChangelogItem[] = [
   {
+    version: 'v1.3.0',
+    date: '2026-02-05',
+    features: [
+      '代码架构重构：将文件系统逻辑解耦至独立 Hook 与 Utils，提升代码可维护性',
+      '数据安全增强：引入 .md.bak 自动备份机制与原子化保存流程，确保文档安全',
+      '兼容性适配：增加传统文件选择降级方案，支持在非现代浏览器环境下使用',
+      'UI 交互优化：改进侧边栏文件树渲染逻辑，提供更丝滑的目录导航体验',
+      '健壮性提升：完善全局类型定义与错误处理机制，减少运行时潜在异常'
+    ]
+  },
+  {
     version: 'v1.2.0',
     date: '2026-02-02',
     features: [
@@ -67,8 +78,8 @@ export const Changelog: React.FC = () => {
                 </div>
                 <ul className="space-y-1.5">
                   {item.features.map((feature, idx) => (
-                    <li key={idx} className="text-secondary-700 dark:text-secondary-300 text-xs leading-relaxed flex gap-1.5">
-                      <span className="text-primary-400/70 mt-1 shrink-0">•</span>
+                    <li key={idx} className="text-secondary-700 dark:text-secondary-300 text-xs leading-relaxed flex items-start gap-1.5">
+                      <span className="text-primary-400/70 shrink-0 flex items-center justify-center w-1 h-[1.625em]">•</span>
                       <span>{feature}</span>
                     </li>
                   ))}
