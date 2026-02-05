@@ -22,11 +22,107 @@ export const EditorPane: React.FC<EditorPaneProps> = ({ content, previewContent,
   const handleEditorDidMount: OnMount = useCallback((editor, monaco) => {
     editorRef.current = editor;
     
+    // 监听行号点击事件
+    editor.onMouseDown((e: any) => {
+      // MouseTargetType.GUTTER_LINE_NUMBERS is 2
+      // MouseTargetType.GUTTER_GLYPH_MARGIN is 1
+      const isGutterClick = e.target && (
+        e.target.type === monaco.editor.MouseTargetType.GUTTER_LINE_NUMBERS ||
+        e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN
+      );
+
+      if (isGutterClick) {
+        const lineNumber = e.target.position?.lineNumber;
+        const clickY = e.event.browserEvent.clientY;
+        if (lineNumber !== undefined) {
+          scrollToPreviewLine(lineNumber, clickY);
+        }
+      }
+    });
+
     // Add Keybinding for Save
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
       onSave();
     });
   }, [onSave]);
+
+  // 定位预览区到指定行号，并与点击位置垂直对齐
+    const scrollToPreviewLine = (lineNumber: number, clickY: number) => {
+       if (!previewRef.current) return;
+       
+       const preview = previewRef.current;
+       const targetLine = lineNumber - 1; // data-line is 0-indexed
+       
+       // 1. 获取预览区内所有的 data-line 元素
+       const elements = Array.from(preview.querySelectorAll('[data-line]')) as HTMLElement[];
+       if (elements.length === 0) return;
+ 
+       // 2. 寻找最合适的匹配元素（向下寻踪）
+       let bestMatch: HTMLElement | null = null;
+       let minDiff = Infinity;
+  
+       elements.forEach(el => {
+         const line = parseInt(el.getAttribute('data-line') || '-1');
+         if (line === -1) return;
+  
+         if (line === targetLine) {
+           bestMatch = el;
+           minDiff = 0;
+         } else if (line < targetLine) {
+           const diff = targetLine - line;
+           if (diff < minDiff) {
+             minDiff = diff;
+             bestMatch = el;
+           }
+         }
+       });
+  
+       // 3. 执行垂直对齐定位
+       if (bestMatch) {
+         let target = bestMatch as HTMLElement;
+         let targetRect = target.getBoundingClientRect();
+         let scrollOffset = targetRect.top - clickY;
+
+         // 4. 精确化定位：如果 target 是一个容器（如 table 或 mermaid），且 targetLine 在其范围内
+         const lineStart = parseInt(target.getAttribute('data-line') || '-1');
+         const lineEnd = parseInt(target.getAttribute('data-line-end') || '-1');
+
+         if (lineEnd > lineStart && targetLine > lineStart && targetLine < lineEnd) {
+           // 尝试在容器内寻找更精确的行（如 tr）
+           const subMatch = Array.from(target.querySelectorAll(`[data-line="${targetLine}"]`)) as HTMLElement[];
+           if (subMatch.length > 0) {
+             target = subMatch[0];
+             targetRect = target.getBoundingClientRect();
+             scrollOffset = targetRect.top - clickY;
+           } else {
+             // 如果没找到精确的子元素（如 mermaid 或 code block），则按比例插值
+             const totalLines = lineEnd - lineStart;
+             const currentLineOffset = targetLine - lineStart;
+             const percentage = currentLineOffset / totalLines;
+             
+             const blockHeight = targetRect.height;
+             const internalOffset = blockHeight * percentage;
+             scrollOffset = (targetRect.top + internalOffset) - clickY;
+           }
+         }
+         
+         // 最终滚动位置 = 当前 scrollTop + 偏移量
+         const finalScrollTop = preview.scrollTop + scrollOffset;
+ 
+         preview.scrollTo({
+           top: Math.max(0, finalScrollTop),
+           behavior: 'smooth'
+         });
+  
+         // 添加短暂的高亮反馈
+         target.style.transition = 'background-color 0.3s';
+         const originalBg = target.style.backgroundColor;
+         target.style.backgroundColor = 'rgba(255, 251, 220, 0.7)';
+         setTimeout(() => {
+           target.style.backgroundColor = originalBg;
+         }, 1000);
+       }
+    };
 
   // Update editor value only when content prop changes from outside
   React.useEffect(() => {
@@ -54,32 +150,9 @@ export const EditorPane: React.FC<EditorPaneProps> = ({ content, previewContent,
     onChange(newValue);
   };
 
-  const handleEditorScroll = () => {
-    if (isProgrammaticScroll.current) return;
-
-    if (editorRef.current && previewRef.current) {
-      const editor = editorRef.current;
-      const preview = previewRef.current;
-      
-      const editorScrollTop = editor.getScrollTop();
-      const editorScrollHeight = editor.getScrollHeight() - editor.getLayoutInfo().height;
-      
-      if (editorScrollHeight > 0) {
-        const percentage = editorScrollTop / editorScrollHeight;
-        const previewScrollHeight = preview.scrollHeight - preview.clientHeight;
-        preview.scrollTop = percentage * previewScrollHeight;
-      }
-    }
-  };
-
   // Add scroll listener to editor
   React.useEffect(() => {
-    if (editorRef.current) {
-      const disposable = editorRef.current.onDidScrollChange(() => {
-        handleEditorScroll();
-      });
-      return () => disposable.dispose();
-    }
+    // 彻底删除滚动监听逻辑
   }, [editorRef.current]);
 
   const performSearchAndHighlight = (text: string, sentence?: string, heading?: string, lineHint?: number) => {

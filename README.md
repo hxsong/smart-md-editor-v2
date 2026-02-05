@@ -11,13 +11,19 @@ A modern, dual-pane Markdown editor with intelligent features.
 - **Rich Diagram Integration**: 
   - **Mermaid & PlantUML**: Render flowcharts, sequence diagrams, and more directly from code.
   - **ECharts**: Embed interactive data visualizations using JSON configuration.
-- **Preview-to-Editor Navigation**: 
-  - Click or select text in the preview to instantly locate and highlight the source code in the editor.
-- **Interactive Tables**: Clickable headers for table sorting and responsive scroll views.
+- **Export & Deployment**:
+  - **PDF Export**: Generate high-quality PDF documents directly from the preview pane.
+  - **Automated CI/CD**: Seamless deployment to GitHub Pages via GitHub Actions.
+- **Content Intelligence**:
+  - **Syntax Validation**: Real-time checking for unclosed code blocks and empty diagrams.
+  - **Preview-to-Editor Navigation**: Click or select text in the preview to instantly locate and highlight the source code in the editor.
+- **Modern UI/UX**:
+  - **Smooth Animations**: Integrated transition effects for a more fluid experience.
+  - **Toast Notifications**: Clear feedback for file operations and system status.
+  - **Custom Scrollbars**: Consistent and elegant scrolling across all browsers.
 - **File System Safety**: 
   - **Automatic Backups**: Creates `.md.bak` files before saving.
   - **Atomic Writes**: Ensures data integrity during file operations.
-  - **Legacy Fallback**: Automatic download fallback for browsers without File System Access API support.
 - **Optimized Editing**: 
   - **Monaco Editor**: High-performance editing experience with shortcuts (Ctrl/Cmd+S).
   - **IME Optimization**: Specifically tuned for smooth Chinese input method (IME) experience.
