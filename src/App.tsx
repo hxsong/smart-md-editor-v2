@@ -6,6 +6,9 @@ import { Header } from './components/layout/Header';
 import { EditorPane } from './components/EditorPane';
 import { MarkdownPreview } from './components/MarkdownPreview';
 import { Changelog } from './components/Changelog';
+import { ProgressModal } from './components/common/ProgressModal';
+import { generateHTML, saveHTMLFile } from './utils/html-export-utils';
+import { md } from './utils/markdown-utils';
 import { validateContent } from './utils/validation';
 
 function App() {
@@ -22,6 +25,19 @@ function App() {
   const [content, setContent] = useState('');
   const [previewContent, setPreviewContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  
+  // HTML Export State
+  const [isHTMLProgressModalOpen, setIsHTMLProgressModalOpen] = useState(false);
+  const [htmlExportProgress, setHtmlExportProgress] = useState(0);
+  const [htmlExportStatus, setHtmlExportStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const [htmlExportError, setHtmlExportError] = useState('');
+
+  // Save State
+  const [isSaveProgressModalOpen, setIsSaveProgressModalOpen] = useState(false);
+  const [saveProgress, setSaveProgress] = useState(0);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const [saveError, setSaveError] = useState('');
+
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const debouncedUpdatePreview = useMemo(
@@ -36,32 +52,46 @@ function App() {
 
   const previewRef = useRef<HTMLDivElement>(null);
 
-  const handleExportPDF = async () => {
-    if (!previewRef.current) {
-      showToast('无法获取预览内容', 'error');
-      return;
-    }
+  const handleExportHTML = async () => {
+    if (!currentFile) return;
+    
+    setIsHTMLProgressModalOpen(true);
+    setHtmlExportStatus('processing');
+    setHtmlExportProgress(0);
+    setHtmlExportError('');
 
     try {
-      showToast('正在生成 PDF...', 'success');
+      // Use the raw markdown content to generate HTML
+      const htmlContent = md.render(content);
+      const fullHtml = await generateHTML(htmlContent, {
+        title: currentFile.name.replace('.md', ''),
+        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+        onProgress: (p) => setHtmlExportProgress(p)
+      });
       
-      // Dynamically import html2pdf.js to avoid SSR issues and reduce initial bundle size
-      const html2pdf = (await import('html2pdf.js')).default;
+      const fileName = currentFile.name.replace('.md', '.html');
+      const success = await saveHTMLFile(fullHtml, fileName);
       
-      const element = previewRef.current;
-      const opt = {
-        margin: [10, 10, 10, 10] as [number, number, number, number],
-        filename: `${currentFile?.name || 'document'}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
-      };
-
-      await html2pdf().set(opt).from(element).save();
-      showToast('PDF 导出成功！', 'success');
+      if (success) {
+        setHtmlExportStatus('success');
+        setHtmlExportProgress(100);
+        showToast('HTML 导出成功！', 'success');
+        setTimeout(() => {
+          setIsHTMLProgressModalOpen(false);
+          setHtmlExportStatus('idle');
+        }, 1000);
+      } else {
+        throw new Error('保存 HTML 文件失败');
+      }
     } catch (err: any) {
-      console.error('Export PDF error:', err);
-      showToast('导出 PDF 失败: ' + err.message, 'error');
+      console.error(err);
+      setHtmlExportStatus('error');
+      setHtmlExportError(err.message || '导出过程中发生错误');
+      // Auto close after error to allow user to try again
+      setTimeout(() => {
+        setIsHTMLProgressModalOpen(false);
+        setHtmlExportStatus('idle');
+      }, 3000);
     }
   };
 
@@ -107,12 +137,35 @@ function App() {
       return;
     }
 
+    setIsSaveProgressModalOpen(true);
+    setSaveStatus('processing');
+    setSaveProgress(0);
+    setSaveError('');
+
     try {
+      // Simulate progress for visual feedback
+      setSaveProgress(20);
+      await new Promise(resolve => setTimeout(resolve, 200));
+      setSaveProgress(60);
+      
       await saveFile(currentFile, content);
+      
+      setSaveProgress(100);
+      setSaveStatus('success');
       showToast('文件保存成功！', 'success');
-    } catch (err) {
+      setTimeout(() => {
+        setIsSaveProgressModalOpen(false);
+        setSaveStatus('idle');
+      }, 1000);
+    } catch (err: any) {
       console.error(err);
-      showToast('保存文件失败。', 'error');
+      setSaveStatus('error');
+      setSaveError(err.message || '保存文件失败');
+      // Auto close after error
+      setTimeout(() => {
+        setIsSaveProgressModalOpen(false);
+        setSaveStatus('idle');
+      }, 3000);
     }
   };
 
@@ -143,7 +196,7 @@ function App() {
                 currentFile={currentFile}
                 onEdit={() => setIsEditing(true)}
                 onBack={() => setCurrentFile(null)}
-                onExportPDF={handleExportPDF}
+                onExportHTML={handleExportHTML}
               />
             )}
 
@@ -156,6 +209,7 @@ function App() {
                     onChange={handleEditorChange}
                     onSave={handleSave}
                     onExitEdit={handleExitEdit}
+                    onExportHTML={handleExportHTML}
                     fileName={currentFile.name}
                   />
                 </div>
@@ -180,6 +234,26 @@ function App() {
             {toast.message}
           </div>
         )}
+
+        <ProgressModal
+        isOpen={isHTMLProgressModalOpen}
+        progress={htmlExportProgress}
+        status={htmlExportStatus}
+        errorMessage={htmlExportError}
+        processingText="正在处理图片和样式..."
+        successText="导出成功！"
+        errorText="导出失败"
+      />
+
+      <ProgressModal
+        isOpen={isSaveProgressModalOpen}
+        progress={saveProgress}
+        status={saveStatus}
+        errorMessage={saveError}
+        processingText="正在保存文件..."
+        successText="保存成功！"
+        errorText="保存失败"
+      />
       </div>
     </div>
   );

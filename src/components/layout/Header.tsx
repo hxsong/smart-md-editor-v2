@@ -6,10 +6,10 @@ interface HeaderProps {
   currentFile: FileNode;
   onEdit: () => void;
   onBack: () => void;
-  onExportPDF: () => void;
+  onExportHTML: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentFile, onEdit, onBack, onExportPDF }) => {
+export const Header: React.FC<HeaderProps> = ({ currentFile, onEdit, onBack, onExportHTML }) => {
   return (
     <div className="h-14 flex items-center justify-between px-4 bg-white dark:bg-secondary-900 z-10 animate-fade-in">
       <div className="flex items-center gap-2 overflow-hidden">
@@ -26,11 +26,11 @@ export const Header: React.FC<HeaderProps> = ({ currentFile, onEdit, onBack, onE
       
       <div className="flex items-center gap-2">
         <button
-          onClick={onExportPDF}
+          onClick={onExportHTML}
           className="h-8 flex items-center gap-2 bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 hover:bg-secondary-50 dark:hover:bg-secondary-700 text-secondary-700 dark:text-secondary-200 px-3 rounded transition-all shadow-sm hover:shadow active:scale-95 text-sm font-medium whitespace-nowrap"
         >
           <Download size={16} />
-          导出 PDF
+          导出 HTML
         </button>
 
         <button

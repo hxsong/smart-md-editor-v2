@@ -1,115 +1,9 @@
-import React, { useEffect, useRef } from 'react';
-import MarkdownIt from 'markdown-it';
-import markdownItFootnote from 'markdown-it-footnote';
-import markdownItTaskLists from 'markdown-it-task-lists';
-import markdownItToc from 'markdown-it-table-of-contents';
-import markdownItTexmath from 'markdown-it-texmath';
-import katex from 'katex';
+import React, { useEffect, useRef, useState } from 'react';
 import mermaid from 'mermaid';
-import plantumlEncoder from 'plantuml-encoder';
 import * as echarts from 'echarts';
 import tablesort from 'tablesort';
-
-// Initialize markdown-it
-const md = new MarkdownIt({
-  html: true,
-  linkify: true,
-  typographer: true,
-})
-  .use(markdownItFootnote)
-  .use(markdownItTaskLists)
-  .use(markdownItToc, {
-    includeLevel: [1, 2, 3],
-    containerClass: 'table-of-contents',
-    slugify: (s: string) => encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, '-')),
-  })
-  .use(markdownItTexmath, {
-    engine: katex,
-    delimiters: 'dollars',
-    katexOptions: { macros: { "\\RR": "\\mathbb{R}" } }
-  });
-
-// Table wrapper renderer
-const defaultTableOpen = md.renderer.rules.table_open || function(tokens, idx, options, _env, self) {
-  return self.renderToken(tokens, idx, options);
-};
-const defaultTableClose = md.renderer.rules.table_close || function(tokens, idx, options, _env, self) {
-  return self.renderToken(tokens, idx, options);
-};
-
-md.renderer.rules.table_open = (tokens, idx, options, _env, self) => {
-  const line = tokens[idx].map ? tokens[idx].map[0] : '';
-  const lineEnd = tokens[idx].map ? tokens[idx].map[1] : '';
-  return `<div class="table-wrapper overflow-x-auto my-6 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 shadow-sm" data-line="${line}" data-line-end="${lineEnd}">${defaultTableOpen(tokens, idx, options, _env, self)}`;
-};
-
-md.renderer.rules.table_close = (tokens, idx, options, _env, self) => {
-  return `${defaultTableClose(tokens, idx, options, _env, self)}</div>`;
-};
-
-// Custom image renderer for stability
-const defaultImage = md.renderer.rules.image || function(tokens, idx, options, _env, self) {
-  return self.renderToken(tokens, idx, options);
-};
-
-md.renderer.rules.image = (tokens, idx, options, _env, self) => {
-  const token = tokens[idx];
-  const line = token.map ? token.map[0] : '';
-  
-  // Add loading="lazy" and ensure display block to avoid vertical-align jumps
-  token.attrSet('loading', 'lazy');
-  token.attrJoin('class', 'max-w-full h-auto rounded-lg shadow-md my-4 block');
-  
-  const rendered = defaultImage(tokens, idx, options, _env, self);
-  return `<div class="image-container min-h-[20px] bg-secondary-50 dark:bg-secondary-900/50 rounded-lg" data-line="${line}">${rendered}</div>`;
-};
-
-// Inject line numbers
-const injectLineNumbers = (tokens: any, idx: number, options: any, _env: any, self: any) => {
-  if (tokens[idx].map) {
-    tokens[idx].attrJoin('class', 'line');
-    tokens[idx].attrSet('data-line', String(tokens[idx].map[0]));
-    tokens[idx].attrSet('data-line-end', String(tokens[idx].map[1]));
-  }
-  return self.renderToken(tokens, idx, options);
-};
-
-['paragraph_open', 'heading_open', 'image', 'code_block', 'blockquote_open', 'list_item_open', 'tr_open'].forEach((rule) => {
-  md.renderer.rules[rule] = injectLineNumbers;
-});
-
-// Custom fence renderer
-const defaultFence = md.renderer.rules.fence || function(tokens, idx, options, _env, self) {
-  return self.renderToken(tokens, idx, options);
-};
-
-md.renderer.rules.fence = (tokens, idx, options, _env, self) => {
-  const token = tokens[idx];
-  const info = token.info.trim();
-  const line = token.map ? token.map[0] : '';
-  const lineEnd = token.map ? token.map[1] : '';
-  
-  if (info === 'mermaid') {
-    return `<div class="mermaid" data-line="${line}" data-line-end="${lineEnd}">${token.content}</div>`;
-  }
-  
-  if (info === 'plantuml') {
-    try {
-      const encoded = plantumlEncoder.encode(token.content);
-      const url = `http://www.plantuml.com/plantuml/svg/${encoded}`;
-      return `<div class="flex justify-center my-4" data-line="${line}" data-line-end="${lineEnd}"><img src="${url}" alt="PlantUML Diagram" /></div>`;
-    } catch (e) {
-      return `<div class="text-red-500" data-line="${line}" data-line-end="${lineEnd}">PlantUML Error: ${e}</div>`;
-    }
-  }
-
-  if (info === 'echarts' || info === 'json echarts') {
-    return `<div class="echarts-chart w-full h-96 my-4" data-line="${line}" data-line-end="${lineEnd}"><script type="application/json">${token.content}</script></div>`;
-  }
-  
-  const rendered = defaultFence(tokens, idx, options, _env, self);
-  return `<div data-line="${line}" data-line-end="${lineEnd}">${rendered}</div>`;
-};
+import { ArrowUp } from 'lucide-react';
+import { md } from '../utils/markdown-utils';
 
 // Initialize mermaid
 mermaid.initialize({
@@ -127,7 +21,15 @@ interface MarkdownPreviewProps {
   previewRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, className, onScroll, onMouseUp, onKeyUp, onClick, previewRef }) => {
+export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ 
+  content, 
+  className, 
+  onScroll, 
+  onMouseUp, 
+  onKeyUp, 
+  onClick, 
+  previewRef 
+}) => {
   const containerRef = previewRef || useRef<HTMLDivElement>(null);
   const contentWrapperRef = useRef<HTMLDivElement>(null);
   const lastContentRef = useRef(content);
@@ -135,13 +37,50 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, class
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const mermaidCacheRef = useRef<Record<string, string>>({});
   const lastScrollTopRef = useRef(0);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   // 1. 增强型滚动追踪
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (e.currentTarget) {
-      lastScrollTopRef.current = e.currentTarget.scrollTop;
-    }
+    const scrollTop = e.currentTarget.scrollTop;
+    lastScrollTopRef.current = scrollTop;
+    setShowBackToTop(scrollTop > 300);
     if (onScroll) onScroll(e);
+  };
+
+  const scrollToTop = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Handle link clicks for internal navigation (TOC)
+  const handlePreviewClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const anchor = target.closest('a');
+    
+    if (anchor && anchor.hash && anchor.hash.startsWith('#')) {
+      e.preventDefault();
+      const id = decodeURIComponent(anchor.hash.slice(1));
+      
+      // Use querySelector with escaped ID for better matching
+      const escapedId = CSS.escape(id);
+      const element = containerRef.current?.querySelector(`#${escapedId}`) || 
+                      containerRef.current?.querySelector(`[id="${escapedId}"]`);
+      
+      if (element) {
+        element.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      } else {
+        console.warn(`Target element not found for ID: ${id}`);
+      }
+    }
+    
+    if (onClick) onClick(e);
   };
 
   // 辅助组件初始化函数
@@ -224,7 +163,7 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, class
         }));
       }
 
-      // 4. 执行同步更新（核心修复点：跳过 React State 异步循环）
+      // 4. 执行同步更新
       if (isActive && contentWrapperRef.current && containerRef.current) {
         const newHtml = tempDiv.innerHTML;
         if (newHtml !== lastRenderedHtmlRef.current) {
@@ -234,14 +173,14 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, class
           // 记录当前滚动
           const currentScroll = lastScrollTopRef.current;
           
-          // 【同步更新】在同一个 JS 任务中完成 DOM 替换和滚动恢复
+          // 【同步更新】
           wrapper.innerHTML = newHtml;
           container.scrollTop = currentScroll;
           
           // 初始化辅助组件
           initAuxiliaryComponents(wrapper);
           
-          // 再次确保滚动位置（防止图片等即时加载导致的偏移）
+          // 再次确保滚动位置
           container.scrollTop = currentScroll;
           
           lastRenderedHtmlRef.current = newHtml;
@@ -269,8 +208,6 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, class
     };
   }, [content]);
 
-  // 移除原有的 [renderedContent] useEffect，逻辑已整合至 render 函数中
-
   return (
     <div
       ref={containerRef}
@@ -286,11 +223,22 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, class
       onScroll={handleScroll}
       onMouseUp={onMouseUp}
       onKeyUp={onKeyUp}
-      onClick={onClick}
+      onClick={handlePreviewClick}
     >
       <div 
         ref={contentWrapperRef}
       />
+      
+      {/* Back to Top Button */}
+      <button
+        onClick={scrollToTop}
+        className={`fixed bottom-8 right-8 p-3 rounded-full bg-primary-600 text-white shadow-lg transition-all duration-300 hover:bg-primary-700 active:scale-95 z-50 ${
+          showBackToTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
+        }`}
+        title="返回顶部"
+      >
+        <ArrowUp size={24} />
+      </button>
     </div>
   );
 };

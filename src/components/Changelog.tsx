@@ -9,6 +9,18 @@ interface ChangelogItem {
 
 const changelogData: ChangelogItem[] = [
   {
+    version: 'v1.4.0',
+    date: '2026-02-06',
+    features: [
+      '离线化 HTML 导出：支持图片自动 Base64 转换与静态资源离线化，生成完全自包含的单文件，并适配主题自适应切换',
+      '中文标题跳转优化：重构 Slug 生成算法以完美支持中文标题锚点，实现 TOC 与文档内容的平滑滚动定位',
+      '渲染稳定性增强：为图片引入预加载占位容器与 Lazy-loading，有效防止因图片异步加载引起的页面布局抖动 (Layout Shift)',
+      '极致渲染性能：集成 Mermaid 渲染结果缓存机制，并结合 ECharts 的 ResizeObserver 响应式监听，大幅提升图表处理效率',
+      '表格交互升级：集成 Tablesort 插件支持点击表头实时排序，并针对表格容器增加了响应式水平滚动与阴影样式',
+      '交互细节打磨：新增全局“返回顶部”悬浮按钮，优化 Markdown 预览区域的行间距与排版细节'
+    ]
+  },
+  {
     version: 'v1.3.0',
     date: '2026-02-05',
     features: [
@@ -16,7 +28,7 @@ const changelogData: ChangelogItem[] = [
       '预览反向跳转：支持点击预览区域或选取文字，自动定位并高亮编辑器中对应的代码段',
       'Markdown 渲染升级：深度支持数学公式 (KaTeX)、脚注、任务列表、目录生成 (TOC) 等高级语法',
       '多维图表集成：内置 Mermaid、PlantUML 流程图与 ECharts 数据图表渲染能力',
-      '导出与发布：新增 PDF 导出功能，并集成 GitHub Actions 实现自动化部署至 GitHub Pages',
+      '导出与发布：集成 GitHub Actions 实现自动化部署至 GitHub Pages',
       '安全与校验：引入 .md.bak 备份机制，新增 Markdown 语法内容校验（如未闭合代码块检测）',
       'UI/UX 全面优化：引入平滑过渡动画、自定义滚动条与全局 Toast 通知系统',
       '架构重构：完成核心逻辑解耦，优化大文件处理性能，并适配二级目录部署环境'
@@ -36,7 +48,6 @@ const changelogData: ChangelogItem[] = [
     version: 'v1.1.0',
     date: '2026-01-25',
     features: [
-      '新增 PDF 导出功能，支持带样式的文档转换',
       '集成 GitHub Actions 自动化部署流程',
       '增强预览界面的同步滚动精度',
       '修复预览区域内容渲染不及时的问题'

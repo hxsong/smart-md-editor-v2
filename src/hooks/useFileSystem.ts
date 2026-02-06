@@ -151,30 +151,20 @@ export const useFileSystem = () => {
     try {
       // 1. Resolve Parent Directory Handle
       const pathParts = node.path.split('/');
-      const fileName = pathParts.pop()!;
+      pathParts.pop();
       let currentDir = rootHandle;
       
       for (const part of pathParts) {
         currentDir = await currentDir.getDirectoryHandle(part);
       }
 
-      // 2. Create Backup (.md.bak)
-      // Get original content first
+      // 2. Save file
       const fileHandle = node.handle as FileSystemFileHandle;
-      const file = await fileHandle.getFile();
-      const oldContent = await file.text();
-
-      const backupHandle = await currentDir.getFileHandle(`${fileName}.bak`, { create: true });
-      const backupWritable = await backupHandle.createWritable();
-      await backupWritable.write(oldContent);
-      await backupWritable.close();
-
-      // 3. Atomic Write
       const writable = await fileHandle.createWritable();
       await writable.write(content);
       await writable.close();
 
-      // 4. Refresh directory to update last modified time
+      // 3. Refresh directory to update last modified time
       await refreshDir();
       
     } catch (err) {

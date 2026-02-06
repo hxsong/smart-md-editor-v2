@@ -74,31 +74,10 @@ export async function readFile(fileHandle: FileSystemFileHandle): Promise<string
 
 export async function saveFile(
   fileHandle: FileSystemFileHandle,
-  content: string,
-  dirHandle: FileSystemDirectoryHandle // Need parent dir handle to create temp/backup files
+  content: string
 ): Promise<void> {
-  // 1. Create backup
-  const fileName = fileHandle.name;
-  const backupName = `${fileName}.bak`;
-  
-  try {
-    const backupHandle = await dirHandle.getFileHandle(backupName, { create: true });
-    const writableBackup = await backupHandle.createWritable();
-    const originalFile = await fileHandle.getFile();
-    await writableBackup.write(await originalFile.text());
-    await writableBackup.close();
-  } catch (e) {
-    console.warn("Backup creation failed", e);
-    // Proceed even if backup fails? User req says "Create .md.bak backup", so maybe we should fail? 
-    // Let's log and proceed for now, but in strict mode we might want to throw.
-  }
-
-  // 2. Atomic Write: Write to temp file then rename (or just write directly if API handles atomicity, 
-  // but File System Access API createWritable() acts on the file directly. 
-  // However, createWritable({ keepExistingData: false }) creates a temporary swap file under the hood usually).
+  // File System Access API createWritable() acts on the file directly. 
   // The API spec says `createWritable` returns a stream to a swap file, and `close()` atomically swaps it.
-  // So we just use `createWritable` normally.
-  
   const writable = await fileHandle.createWritable();
   await writable.write(content);
   await writable.close();

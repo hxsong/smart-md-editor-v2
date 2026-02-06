@@ -9,24 +9,28 @@ A modern, dual-pane Markdown editor with intelligent features.
   - **Math Formulas**: Deep integration with KaTeX for LaTeX-style math rendering.
   - **Extended Syntax**: Support for footnotes, task lists, and automatic Table of Contents (TOC).
 - **Rich Diagram Integration**: 
-  - **Mermaid & PlantUML**: Render flowcharts, sequence diagrams, and more directly from code.
-  - **ECharts**: Embed interactive data visualizations using JSON configuration.
+  - **Mermaid & PlantUML**: Render flowcharts, sequence diagrams, and more directly from code with **render caching**.
+  - **ECharts**: Embed interactive data visualizations with **ResizeObserver** for responsive layouts.
 - **Export & Deployment**:
+  - **Offline HTML Export**: Generate self-contained HTML documents with **Base64 image localization** and theme-awareness.
   - **PDF Export**: Generate high-quality PDF documents directly from the preview pane.
   - **Automated CI/CD**: Seamless deployment to GitHub Pages via GitHub Actions.
 - **Content Intelligence**:
+  - **Chinese-Friendly Navigation**: Optimized Slug generation for TOC and anchors supporting Chinese characters.
   - **Syntax Validation**: Real-time checking for unclosed code blocks and empty diagrams.
   - **Preview-to-Editor Navigation**: Click or select text in the preview to instantly locate and highlight the source code in the editor.
 - **Modern UI/UX**:
-  - **Smooth Animations**: Integrated transition effects for a more fluid experience.
-  - **Toast Notifications**: Clear feedback for file operations and system status.
-  - **Custom Scrollbars**: Consistent and elegant scrolling across all browsers.
+  - **Layout Stability**: Image pre-loading containers to prevent **Layout Shift** during rendering.
+  - **Back to Top**: Floating button for quick navigation in long documents.
+  - **Smooth Animations**: Integrated transition effects and custom scrollbars for a fluid experience.
+  - **Interactive Tables**: Clickable headers for sorting with responsive scroll views.
 - **File System Safety**: 
   - **Automatic Backups**: Creates `.md.bak` files before saving.
   - **Atomic Writes**: Ensures data integrity during file operations.
 - **Optimized Editing**: 
   - **Monaco Editor**: High-performance editing experience with shortcuts (Ctrl/Cmd+S).
   - **IME Optimization**: Specifically tuned for smooth Chinese input method (IME) experience.
+  - **Rendering Stability**: Optimized update algorithm to preserve scroll position and prevent flicker.
 
 ## Browser Compatibility
 
