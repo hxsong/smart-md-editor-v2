@@ -145,6 +145,8 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
       if (mermaidNodes.length > 0) {
         await Promise.all(Array.from(mermaidNodes).map(async (node) => {
           try {
+            // Use textContent instead of innerHTML to get the raw text 
+            // from the pre-rendered div (which contains unescaped text from markdown-it)
             const text = node.textContent || '';
             const line = node.getAttribute('data-line');
             const lineEnd = node.getAttribute('data-line-end');
@@ -160,7 +162,9 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
             }
           } catch (error) {
             console.error('Mermaid render error:', error);
-            node.innerHTML = `<div class="text-red-500 border border-red-300 bg-red-50 p-2 rounded">Mermaid 渲染错误: ${(error as any).message}</div><pre>${node.textContent}</pre>`;
+            // Re-render error message, but keep original text for debugging
+            const originalText = node.textContent || '';
+            node.innerHTML = `<div class="text-red-500 border border-red-300 bg-red-50 p-2 rounded">Mermaid 渲染错误: ${(error as any).message}</div><pre class="mt-2 text-xs overflow-auto">${md.utils.escapeHtml(originalText)}</pre>`;
           }
         }));
       }

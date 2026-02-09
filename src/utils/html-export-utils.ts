@@ -1,3 +1,4 @@
+import mermaid from 'mermaid';
 
 /**
  * Utility for exporting Markdown content to a self-contained HTML file.
@@ -83,6 +84,62 @@ const getStyles = (): string => {
 };
 
 /**
+ * Pre-renders Mermaid diagrams into SVGs using the local Mermaid instance.
+ */
+const preRenderMermaid = async (html: string): Promise<string> => {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  const mermaidNodes = div.querySelectorAll('.mermaid');
+  
+  if (mermaidNodes.length === 0) return html;
+
+  // Initialize mermaid with the same settings as preview
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+    securityLevel: 'loose',
+    er: { useMaxWidth: true }
+  });
+
+  await Promise.all(Array.from(mermaidNodes).map(async (node) => {
+    try {
+      // Get raw text content (this automatically handles unescaping HTML entities)
+      const text = node.textContent || '';
+      const id = `mermaid-export-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Render SVG
+      const { svg } = await mermaid.render(id, text);
+      
+      // Replace the node with the rendered SVG container
+      // Preserve data attributes for line sync if needed (though less relevant in static export)
+      const line = node.getAttribute('data-line');
+      const lineEnd = node.getAttribute('data-line-end');
+      
+      const container = document.createElement('div');
+      container.className = 'mermaid-container';
+      if (line) container.setAttribute('data-line', line);
+      if (lineEnd) container.setAttribute('data-line-end', lineEnd);
+      container.innerHTML = svg;
+      
+      node.replaceWith(container);
+    } catch (error) {
+      console.error('Mermaid export render error:', error);
+      // Leave the original node or show error
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'text-red-500 border border-red-300 bg-red-50 p-2 rounded';
+      errorDiv.textContent = `Mermaid Render Error: ${(error as any).message}`;
+      // Append original source for reference
+      const pre = document.createElement('pre');
+      pre.textContent = node.textContent || '';
+      errorDiv.appendChild(pre);
+      node.replaceWith(errorDiv);
+    }
+  }));
+
+  return div.innerHTML;
+};
+
+/**
  * Generates a full, self-contained HTML document string.
  */
 export const generateHTML = async (
@@ -92,18 +149,22 @@ export const generateHTML = async (
   const { title = 'Exported Document', theme = 'light', onProgress } = options;
   const styles = getStyles();
   
-  // Localize images with progress reporting
+  // 1. Pre-render Mermaid diagrams (0-20%)
   onProgress?.(0);
-  const localizedContent = await localizeImages(contentHtml, (p) => {
-    // We reserve 90% for image localization, 10% for final assembly
-    onProgress?.(Math.round(p * 0.9));
+  const contentWithMermaid = await preRenderMermaid(contentHtml);
+  onProgress?.(20);
+
+  // 2. Localize images (20-95%)
+  const localizedContent = await localizeImages(contentWithMermaid, (p) => {
+    // Map 0-100 to 20-95
+    onProgress?.(20 + Math.round(p * 0.75));
   });
 
   onProgress?.(95);
 
   // CDNs for external dependencies
   const katexCss = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
-  const mermaidJs = 'https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js';
+  // Mermaid JS is no longer needed in the export since we pre-render
   const echartsJs = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
   const tablesortJs = 'https://cdn.jsdelivr.net/npm/tablesort@5.2.1/dist/tablesort.min.js';
 
@@ -270,6 +331,8 @@ export const generateHTML = async (
         /* Ensure charts and diagrams are visible */
         .echarts-chart { min-height: 400px; width: 100%; margin: 1.5rem 0; }
         .mermaid-container { display: flex; justify-content: center; margin: 1.5rem 0; }
+        /* Ensure mermaid source text preserves whitespace so it can be parsed correctly */
+        .mermaid { white-space: pre; visibility: hidden; }
         
         /* Back to Top Button */
         #back-to-top {
@@ -318,19 +381,10 @@ export const generateHTML = async (
     </button>
 
     <!-- External Scripts -->
-    <script src="${mermaidJs}"></script>
     <script src="${echartsJs}"></script>
     <script src="${tablesortJs}"></script>
 
     <script>
-        // Initialize Mermaid
-        mermaid.initialize({ 
-            startOnLoad: false, 
-            theme: '${theme === 'dark' ? 'dark' : 'default'}',
-            securityLevel: 'loose',
-            er: { useMaxWidth: true }
-        });
-
         // Initialize ECharts
         function initCharts() {
             const chartContainers = document.querySelectorAll('.echarts-chart');
@@ -364,17 +418,6 @@ export const generateHTML = async (
         document.addEventListener('DOMContentLoaded', async () => {
             initCharts();
             initTableSort();
-            
-            // Render Mermaid diagrams
-            if (typeof mermaid !== 'undefined') {
-                try {
-                    await mermaid.run({
-                        nodes: document.querySelectorAll('.mermaid')
-                    });
-                } catch (e) {
-                    console.error('Mermaid render error:', e);
-                }
-            }
 
             // Handle TOC and internal link clicks without changing URL hash
             document.addEventListener('click', (e) => {
