@@ -17,9 +17,11 @@ A modern, dual-pane Markdown editor with intelligent features.
   - **Automated CI/CD**: Seamless deployment to GitHub Pages via GitHub Actions.
 - **Content Intelligence**:
   - **Chinese-Friendly Navigation**: Optimized Slug generation for TOC and anchors supporting Chinese characters.
-  - **Syntax Validation**: Real-time checking for unclosed code blocks and empty diagrams.
+  - **Syntax Validation**: Integrated checking for **unclosed code blocks** and **empty Mermaid diagrams** before saving.
   - **Preview-to-Editor Navigation**: Click or select text in the preview to instantly locate and highlight the source code in the editor.
 - **Modern UI/UX**:
+  - **Unified Feedback System**: Centralized **Progress Modals** for file saving and HTML exporting with detailed status tracking.
+  - **Global Notifications**: Lightweight **Toast system** for immediate feedback on user actions and system errors.
   - **Layout Stability**: Image pre-loading containers to prevent **Layout Shift** during rendering.
   - **Back to Top**: Floating button for quick navigation in long documents.
   - **Smooth Animations**: Integrated transition effects and custom scrollbars for a fluid experience.

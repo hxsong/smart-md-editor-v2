@@ -324,7 +324,12 @@ export const generateHTML = async (
 
     <script>
         // Initialize Mermaid
-        mermaid.initialize({ startOnLoad: true, theme: '${theme === 'dark' ? 'dark' : 'default'}' });
+        mermaid.initialize({ 
+            startOnLoad: false, 
+            theme: '${theme === 'dark' ? 'dark' : 'default'}',
+            securityLevel: 'loose',
+            er: { useMaxWidth: true }
+        });
 
         // Initialize ECharts
         function initCharts() {
@@ -356,9 +361,20 @@ export const generateHTML = async (
         }
 
         // Run initializations
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             initCharts();
             initTableSort();
+            
+            // Render Mermaid diagrams
+            if (typeof mermaid !== 'undefined') {
+                try {
+                    await mermaid.run({
+                        nodes: document.querySelectorAll('.mermaid')
+                    });
+                } catch (e) {
+                    console.error('Mermaid render error:', e);
+                }
+            }
 
             // Handle TOC and internal link clicks without changing URL hash
             document.addEventListener('click', (e) => {

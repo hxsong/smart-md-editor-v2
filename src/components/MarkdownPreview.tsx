@@ -9,6 +9,8 @@ import { md } from '../utils/markdown-utils';
 mermaid.initialize({
   startOnLoad: false,
   theme: 'default',
+  securityLevel: 'loose',
+  er: { useMaxWidth: true }
 });
 
 interface MarkdownPreviewProps {

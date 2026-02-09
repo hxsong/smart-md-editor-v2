@@ -99,7 +99,7 @@ md.renderer.rules.fence = (tokens, idx, options, _env, self) => {
   const lineEnd = token.map ? token.map[1] : '';
   
   if (info === 'mermaid') {
-    return `<div class="mermaid" data-line="${line}" data-line-end="${lineEnd}">${token.content}</div>`;
+    return `<div class="mermaid" data-line="${line}" data-line-end="${lineEnd}">${md.utils.escapeHtml(token.content)}</div>`;
   }
   
   if (info === 'plantuml') {
