@@ -4,6 +4,7 @@ import * as echarts from 'echarts';
 import tablesort from 'tablesort';
 import { ArrowUp } from 'lucide-react';
 import { md } from '../utils/markdown-utils';
+import { initMermaidInteractions, MERMAID_INTERACTION_CSS } from '../utils/mermaid-interaction';
 
 // Initialize mermaid
 mermaid.initialize({
@@ -107,15 +108,18 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
                 containerRef.current.scrollTop = lastScrollTopRef.current;
               }
           });
-          resizeObserver.observe(div);
-        } catch (e) {
-          console.error('ECharts render error:', e);
-          div.innerHTML = `<div class="text-red-500 p-4 border border-red-300 bg-red-50 rounded">Error rendering chart: Invalid JSON configuration</div>`;
-        }
-      }
-    });
+         resizeObserver.observe(div);
+       } catch (e) {
+         console.error('ECharts render error:', e);
+         div.innerHTML = `<div class="text-red-500 p-4 border border-red-300 bg-red-50 rounded">Error rendering chart: Invalid JSON configuration</div>`;
+       }
+     }
+   });
 
-    // Tablesort
+   // Mermaid Interactions
+   initMermaidInteractions(container);
+
+   // Tablesort
     const tables = container.querySelectorAll('table');
     tables.forEach((table) => {
        if (table.getAttribute('data-tablesort-initialized')) return;
@@ -231,6 +235,7 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
       onKeyUp={onKeyUp}
       onClick={handlePreviewClick}
     >
+      <style>{MERMAID_INTERACTION_CSS}</style>
       <div 
         ref={contentWrapperRef}
       />

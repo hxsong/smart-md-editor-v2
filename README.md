@@ -9,7 +9,7 @@ A modern, dual-pane Markdown editor with intelligent features.
   - **Math Formulas**: Deep integration with KaTeX for LaTeX-style math rendering.
   - **Extended Syntax**: Support for footnotes, task lists, and automatic Table of Contents (TOC).
 - **Rich Diagram Integration**: 
-  - **Mermaid & PlantUML**: Render flowcharts, sequence diagrams, and more directly from code with **render caching**.
+  - **Mermaid & PlantUML**: Render flowcharts, sequence diagrams, and more with **Pan & Zoom (2.0)** and **render caching**.
   - **ECharts**: Embed interactive data visualizations with **ResizeObserver** for responsive layouts.
 - **Export & Deployment**:
   - **Offline HTML Export**: Generate self-contained HTML documents with **Base64 image localization** and theme-awareness.
@@ -19,7 +19,8 @@ A modern, dual-pane Markdown editor with intelligent features.
   - **Chinese-Friendly Navigation**: Optimized Slug generation for TOC and anchors supporting Chinese characters.
   - **Syntax Validation**: Integrated checking for **unclosed code blocks** and **empty Mermaid diagrams** before saving.
   - **Preview-to-Editor Navigation**: Click or select text in the preview to instantly locate and highlight the source code in the editor.
-- **Modern UI/UX**:
+- **Modern UI/UX**: 
+  - **Dark Mode 2.0**: Deeply optimized color palette for low-light environments across all components.
   - **Unified Feedback System**: Centralized **Progress Modals** for file saving and HTML exporting with detailed status tracking.
   - **Global Notifications**: Lightweight **Toast system** for immediate feedback on user actions and system errors.
   - **Layout Stability**: Image pre-loading containers to prevent **Layout Shift** during rendering.

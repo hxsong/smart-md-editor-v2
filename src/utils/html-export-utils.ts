@@ -1,4 +1,5 @@
 import mermaid from 'mermaid';
+import { MERMAID_INTERACTION_CSS, MERMAID_INTERACTION_JS } from './mermaid-interaction';
 
 /**
  * Utility for exporting Markdown content to a self-contained HTML file.
@@ -330,7 +331,10 @@ export const generateHTML = async (
         
         /* Ensure charts and diagrams are visible */
         .echarts-chart { min-height: 400px; width: 100%; margin: 1.5rem 0; }
-        .mermaid-container { display: flex; justify-content: center; margin: 1.5rem 0; }
+        
+        /* Mermaid Interaction Styles */
+        ${MERMAID_INTERACTION_CSS}
+        
         /* Ensure mermaid source text preserves whitespace so it can be parsed correctly */
         .mermaid { white-space: pre; visibility: hidden; }
         
@@ -383,6 +387,11 @@ export const generateHTML = async (
     <!-- External Scripts -->
     <script src="${echartsJs}"></script>
     <script src="${tablesortJs}"></script>
+
+    <!-- Mermaid Interaction Logic -->
+    <script>
+        ${MERMAID_INTERACTION_JS}
+    </script>
 
     <script>
         // Initialize ECharts

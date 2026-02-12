@@ -10,6 +10,18 @@ interface ChangelogItem {
 
 const changelogData: ChangelogItem[] = [
   {
+    version: 'v1.7.0',
+    date: '2026-02-13',
+    features: [
+      'Mermaid 交互引擎 2.0：为所有 Mermaid 图表引入了平移 (Pan) 与缩放 (Zoom) 功能，并支持工具栏快速重置与百分比显示',
+      '极致暗黑模式适配：重构了全局配色方案，针对预览区域与工具组件进行了深度暗色调优，确保低光环境下的视觉舒适度',
+      '渲染引擎性能飞跃：引入异步非阻塞渲染逻辑与智能 HTML 片段 Diff 算法，即使处理万行大文档也能保持秒开与实时响应',
+      '目录导航增强：优化了 TOC 锚点跳转的偏移量计算，解决了固定页头遮挡标题的问题，并支持了非标准 ID 的安全转义',
+      'UI 细节打磨：新增全局“返回顶部”平滑滚动效果，优化了预览区域的行高、字体间距与引用块 (Blockquote) 的视觉样式',
+      '稳定性加固：修复了 ECharts 在 ResizeObserver 监听下的潜在内存泄漏问题，并完善了 Mermaid 渲染失败时的容错展示'
+    ]
+  },
+  {
     version: 'v1.6.0',
     date: '2026-02-12',
     features: [
