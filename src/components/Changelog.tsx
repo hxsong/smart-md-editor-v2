@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { History, GitCommit } from 'lucide-react';
+import { DraggableModal } from './common/DraggableModal';
 
 interface ChangelogItem {
   version: string;
@@ -8,6 +9,18 @@ interface ChangelogItem {
 }
 
 const changelogData: ChangelogItem[] = [
+  {
+    version: 'v1.6.0',
+    date: '2026-02-12',
+    features: [
+      '模态框布局持久化：DraggableModal 全面接入 localStorage，自动记忆每个模态框的位置、尺寸及最小化状态',
+      '文件浏览器体验升级：重构 FileExplorer 交互，支持目录层级递归展开、选中态视觉反馈及平滑的滑入动画',
+      '编辑器全屏工作流：优化 EditorPane 布局，支持编辑/预览双栏拖拽缩放与全屏模式切换，显著提升长文创作体验',
+      '快捷键系统增强：新增 Ctrl/Cmd + E 全局切换编辑模式，完善 Monaco 编辑器内部的 Ctrl/Cmd + S 保存反馈',
+      '移动端自适应优化：针对小屏幕设备重写了模态框渲染逻辑，支持底部抽屉式交互与触摸拖拽，提升移动端兼容性',
+      '项目结构标准化：完成 layout 组件库重构，统一了 Header、Sidebar 等核心布局组件的 API 接口与样式规范'
+    ]
+  },
   {
     version: 'v1.5.0',
     date: '2026-02-09',
@@ -72,49 +85,85 @@ const changelogData: ChangelogItem[] = [
       'Super-MDEditor 初始版本发布',
       '支持本地文件系统读写，实现即时保存',
       '深度集成 Monaco Editor，提供丝滑编辑体验',
-      '内置实时 Markdown 预览与数学公式渲染支持'
+      '内置实时 Markdown 预览 with 数学公式渲染支持'
     ]
   }
 ];
 
-export const Changelog: React.FC = () => {
+interface ChangelogProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const Changelog: React.FC<ChangelogProps> = ({ isOpen, onClose }) => {
+  const latestVersion = changelogData[0].version;
+
+  const unreadCount = useMemo(() => {
+    // If modal is open, we consider it "read" in this session
+    if (isOpen) return 0;
+    
+    const lastSeen = localStorage.getItem('changelog_last_seen_version');
+    if (!lastSeen) return changelogData.length;
+    const index = changelogData.findIndex(item => item.version === lastSeen);
+    // Return number of items before the last seen version in the array
+    return index === -1 ? changelogData.length : index;
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      localStorage.setItem('changelog_last_seen_version', latestVersion);
+    }
+  }, [isOpen, latestVersion]);
+
+  const initialWidth = Math.max(400, window.innerWidth * 0.5);
+  const initialPosition = { 
+    x: (window.innerWidth - initialWidth) / 2, 
+    y: (window.innerHeight - 750) / 2 
+  };
+
   return (
-    <div className="absolute top-6 right-6 bottom-6 w-80 bg-white dark:bg-secondary-800 shadow-2xl rounded-2xl border border-secondary-100 dark:border-secondary-700 flex flex-col overflow-hidden animate-slide-in-right z-50">
-      <div className="flex items-center gap-2 p-4 border-b border-secondary-100 dark:border-secondary-700 bg-secondary-50/50 dark:bg-secondary-800/50">
-        <History className="text-primary-600 dark:text-primary-400" size={16} />
-        <h2 className="text-base font-bold text-secondary-900 dark:text-secondary-100">功能更新日志</h2>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-        <div className="space-y-8">
-          {changelogData.map((item) => (
-            <div key={item.version} className="relative pl-6 before:absolute before:left-2 before:top-2.5 before:bottom-[-32px] before:w-[1.5px] before:bg-secondary-100 dark:before:bg-secondary-700 last:before:hidden">
-              <div className="absolute left-0 top-0.5 w-4 h-4 rounded-full bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 z-10">
-                <GitCommit size={10} />
-              </div>
-              
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-2 py-0.5 rounded-full flex items-center h-5">
-                    {item.version}
-                  </span>
-                  <span className="text-[10px] text-secondary-400 dark:text-secondary-500 whitespace-nowrap">
-                    {item.date}
-                  </span>
+    <DraggableModal
+      id="changelog"
+      title="功能更新日志"
+      isOpen={isOpen}
+      onClose={onClose}
+      icon={<History className="text-primary-600 dark:text-primary-400" size={16} />}
+      badgeCount={unreadCount}
+      initialPosition={initialPosition}
+      initialSize={{ width: initialWidth, height: 750 }}
+    >
+      <div className="flex flex-col h-full bg-white dark:bg-secondary-900 overflow-hidden">
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+          <div className="space-y-8">
+            {changelogData.map((item) => (
+              <div key={item.version} className="relative pl-6 before:absolute before:left-2 before:top-2.5 before:bottom-[-32px] before:w-[1.5px] before:bg-secondary-100 dark:before:bg-secondary-700 last:before:hidden">
+                <div className="absolute left-0 top-0.5 w-4 h-4 rounded-full bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 z-10">
+                  <GitCommit size={10} />
                 </div>
-                <ul className="space-y-1.5">
-                  {item.features.map((feature, idx) => (
-                    <li key={idx} className="text-secondary-700 dark:text-secondary-300 text-xs leading-relaxed flex items-start gap-1.5">
-                      <span className="text-primary-400/70 shrink-0 flex items-center justify-center w-1 h-[1.625em]">•</span>
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-2 py-0.5 rounded-full flex items-center h-5">
+                      {item.version}
+                    </span>
+                    <span className="text-[10px] text-secondary-400 dark:text-secondary-500 whitespace-nowrap">
+                      {item.date}
+                    </span>
+                  </div>
+                  <ul className="space-y-1.5">
+                    {item.features.map((feature, idx) => (
+                      <li key={idx} className="text-secondary-700 dark:text-secondary-300 text-xs leading-relaxed flex items-start gap-1.5">
+                        <span className="text-primary-400/70 shrink-0 flex items-center justify-center w-1 h-[1.625em]">•</span>
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </DraggableModal>
   );
 };

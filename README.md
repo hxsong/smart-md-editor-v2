@@ -29,9 +29,11 @@ A modern, dual-pane Markdown editor with intelligent features.
 - **File System Safety**: 
   - **Automatic Backups**: Creates `.md.bak` files before saving.
   - **Atomic Writes**: Ensures data integrity during file operations.
+  - **Layout Persistence**: Automatically saves and restores modal positions and sizes via **localStorage**.
 - **Optimized Editing**: 
-  - **Monaco Editor**: High-performance editing experience with shortcuts (Ctrl/Cmd+S).
+  - **Monaco Editor**: High-performance editing experience with shortcuts (**Ctrl/Cmd+S** to save, **Ctrl/Cmd+E** to toggle edit mode).
   - **IME Optimization**: Specifically tuned for smooth Chinese input method (IME) experience.
+  - **Responsive Design**: Mobile-friendly interfaces with bottom-drawer interactions for small screens.
   - **Rendering Stability**: Optimized update algorithm to preserve scroll position and prevent flicker.
 
 ## Browser Compatibility
